@@ -9,7 +9,7 @@ start_date = "2025-05-30" if start_date < pd.to_datetime("2025-05-30").date() el
 
 end_date = pd.to_datetime('today').date() - pd.Timedelta(days=1)
 
-inv = database_tools.read_database('fba_inventory', start_date, end_date)
+inv = database_tools.read_database('fba_inventory', start_date, pd.to_datetime('today').date())
 sales = database_tools.read_database('sales', start_date, end_date)
 
 def calculate_inventory_isr(inventory):
@@ -94,10 +94,9 @@ def main():
     inv_copy['snapshot-date'] = pd.to_datetime(inv_copy['snapshot-date'])
     latest_date = inv_copy['snapshot-date'].max()
     latest_inventory = inv_copy[inv_copy['snapshot-date'] == latest_date]
-    latest_inventory.to_excel(os.path.join(user_folder, 'latest_inventory.xlsx'), index=False)
-    quantity_map = latest_inventory.groupby('asin')['inventory_supply_at_fba'].sum()
-    result['quantity_available'] = result['asin'].map(quantity_map).fillna(0)
-    result['days_of_sale_remaining'] = result['quantity_available'] /result['average_corrected']
+    quantity_map = latest_inventory.groupby('asin')['inventory_supply_at_fba'].sum().reset_index()
+    result = pd.merge(result, quantity_map, on='asin', how='outer')
+    result['days_of_sale_remaining'] = result['inventory_supply_at_fba'] /result['average_corrected']
     result.to_excel(os.path.join(user_folder, 'inventory_restock.xlsx'), index=False)
     os.startfile(os.path.join(user_folder))
 
