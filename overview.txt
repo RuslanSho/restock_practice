@@ -1,0 +1,38 @@
+Ultimate goal:
+    - need to see sales, ISR, average sales, AMZ stock, WH stock on a product level
+
+Stages: 
+    1. Download data from Amazon - manually
+    2. Upload data to local db - script
+    3. Retrieve data from local db with conditions - script
+    4. Combine and calculate data
+
+Resources needed:
+    - Sales including average sales: amazon orders report with history
+    - ISR: fba inventory report with history
+    - AMZ stock: fba inventory report
+    - WH stock: sellercloud inventory bins report:
+                    query = f"""
+                    SELECT date, ProductID as sku, QtyAvailable, QtyPhysical, BinType, Sellable, BinName
+                    FROM `mellanni-project-da.sellercloud.inventory_bins`
+                    WHERE DATE(date)=(
+                        SELECT DATE(MAX(date)) FROM `mellanni-project-da.sellercloud.inventory_bins`
+                        WHERE DATE(date) <= DATE("{self.end}")
+                    )
+                    """
+
+                    sellable = result.query('Sellable == True & BinType != "Picking" & ~BinName.str.startswith("DS")')
+                    if len(sellable)>0:
+                        sellable = sellable.pivot_table(
+                            values = ['QtyAvailable', 'QtyPhysical', 'date'],
+                            index = 'sku',
+                            aggfunc = {'QtyAvailable':'sum', 'QtyPhysical':'sum', 'date':'max'}
+                            ).reset_index()
+                    sellable = sellable.rename(columns = {'QtyAvailable':'total_wh'})
+                    
+                    receiving = result.query('Sellable == False & BinType == "Receiving"')
+    - Dictionary: bigquery dictionary db
+
+Functions needed:
+    - pull bigquery (different reports)
+    - cleaning and aggregating data in pandas

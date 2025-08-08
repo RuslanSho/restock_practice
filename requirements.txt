@@ -1,0 +1,4 @@
+openpyxl
+pandas
+
+git+https://github.com/misunders2d/helper-modules.git@master
