@@ -208,3 +208,7 @@ __marimo__/
 
 *.db
 reports_data/
+
+gcloud.json
+gdrive.json
+.secrets/

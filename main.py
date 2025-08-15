@@ -4,6 +4,7 @@ import sqlite3
 from common import user_folder
 import os
 import numpy as np
+from utils import mellanni_modules as mm
 
 start_date = pd.to_datetime('today').date() - pd.Timedelta(days=181)
 start_date = "2025-05-30" if start_date < pd.to_datetime("2025-05-30").date() else start_date
@@ -120,7 +121,7 @@ def main():
     result['to_ship_boxes'] = (np.ceil(result['to_ship_units'] / result['sets_in_a_box'])).apply(lambda x: x if x > 0 else 0)
     result['dos_with_to_ship_boxes'] = (((result['sets_in_a_box'] * result['to_ship_boxes'] + result['inventory_supply_at_fba']) / result['average_corrected']).round(0)).apply(lambda x: x if x > 0 else 0)
     result = pd.merge(result, dictionary, on='asin', how='inner')
-    result.to_excel(os.path.join(user_folder, 'inventory_restock.xlsx'), index=False, sheet_name='restock')
+    mm.export_to_excel([result],['restock'], 'inventory_restock.xlsx', user_folder)
     os.startfile(os.path.join(user_folder))
 
 if __name__ == "__main__":
